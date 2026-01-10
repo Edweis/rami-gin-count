@@ -82,6 +82,12 @@ app.post('/api/add', csrfSynchronisedProtection, (req, res) => {
   res.json({ success: true, entry: newEntry });
 });
 
+// Wipe database
+app.post('/wipe', csrfSynchronisedProtection, (req, res) => {
+  saveData([]);
+  res.redirect('/');
+});
+
 app.listen(PORT, () => {
   console.log(`Ramin Gin Count running at http://localhost:${PORT}`);
 });

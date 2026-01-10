@@ -108,6 +108,17 @@ html(lang="fr")
       button:hover {
         background: #ff6b6b;
       }
+      .wipe-section {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+      }
+      .btn-danger {
+        background: #6c757d;
+      }
+      .btn-danger:hover {
+        background: #dc3545;
+      }
   body
     .container
       h1= title
@@ -157,3 +168,8 @@ html(lang="fr")
               td= formatDate(count.datetime)
               td= count.kaille || '-'
               td= count.francis || '-'
+
+      .wipe-section
+        form(action="/wipe" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir effacer toutes les données ?')")
+          input(type="hidden" name="_csrf" value=csrfToken)
+          button.btn-danger(type="submit") Effacer toutes les données
