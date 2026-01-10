@@ -25,9 +25,11 @@ jobs:
       - name: Deploy to server
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            APP_DIR="/home/$USER/gin"
+
             # Create app directory if it doesn't exist
-            mkdir -p ~/apps/ramin-gin-count
-            cd ~/apps/ramin-gin-count
+            mkdir -p $APP_DIR
+            cd $APP_DIR
 
             # Clone or pull latest code
             if [ -d ".git" ]; then
@@ -39,19 +41,18 @@ jobs:
             # Install dependencies
             npm install --production
 
-            # Restart the app with PM2
+            # Reload the app with PM2
             if command -v pm2 &> /dev/null; then
-              pm2 describe ramin-gin-count > /dev/null 2>&1
+              pm2 describe gin > /dev/null 2>&1
               if [ $? -eq 0 ]; then
-                pm2 restart ramin-gin-count
+                pm2 reload gin
               else
-                pm2 start server.js --name ramin-gin-count
+                pm2 start server.js --name gin
               fi
               pm2 save
             else
-              # Fallback: install PM2 globally
               npm install -g pm2
-              pm2 start server.js --name ramin-gin-count
+              pm2 start server.js --name gin
               pm2 save
               pm2 startup
             fi
