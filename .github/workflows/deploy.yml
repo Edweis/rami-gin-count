@@ -60,4 +60,4 @@ jobs:
       - name: Verify deployment
         run: |
           sleep 5
-          curl -f http://${{ secrets.SERVER_HOST }}:5400 || echo "Note: Direct IP check failed, but domain gin.kapochamo.com may still work via reverse proxy"
+          curl -f http://${{ secrets.SERVER_HOST }}:5400 || echo "Server may need a moment to start"
