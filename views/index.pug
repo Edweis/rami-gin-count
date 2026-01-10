@@ -142,15 +142,7 @@ html(lang="fr")
             td
             td= totalKaille
             td= totalFrancis
-          -
-            const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
-            function formatDate(dt) {
-              if (!dt) return '-';
-              const d = new Date(dt);
-              if (isNaN(d.getTime())) return '-';
-              return d.getDate() + ' ' + months[d.getMonth()];
-            }
-            var reversedCounts = counts.slice().reverse();
+          - var reversedCounts = counts.slice().reverse();
           each count, index in reversedCounts
             tr
               td= counts.length - index

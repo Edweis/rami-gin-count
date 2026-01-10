@@ -3,6 +3,16 @@ const path = require('path');
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const { csrfSync } = require('csrf-sync');
+const dayjs = require('dayjs');
+require('dayjs/locale/fr');
+dayjs.locale('fr');
+
+function formatDate(dt) {
+  if (!dt) return '-';
+  const d = dayjs(dt);
+  if (!d.isValid()) return '-';
+  return d.format('D MMM');
+}
 
 const app = express();
 const PORT = process.env.PORT || 5400;
@@ -44,7 +54,8 @@ app.get('/', (req, res) => {
   res.render('index', {
     title: 'Rami Gin Scores',
     counts: counts,
-    csrfToken: csrfToken
+    csrfToken: csrfToken,
+    formatDate: formatDate
   });
 });
 
