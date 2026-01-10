@@ -1,0 +1,14 @@
+{
+  "name": "ramin-gin-count",
+  "version": "1.0.0",
+  "description": "Gin Rummy point counter for Kaille and Francis",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pug": "^3.0.2"
+  }
+}
