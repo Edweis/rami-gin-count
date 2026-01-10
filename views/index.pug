@@ -69,7 +69,7 @@ html(lang="fr")
         margin-bottom: 5px;
         color: #ccc;
       }
-      input[type="number"] {
+      input[type="text"], input[type="number"] {
         width: 100%;
         padding: 10px;
         border: none;
@@ -113,10 +113,8 @@ html(lang="fr")
       h1= title
 
       .add-form
-        h3 Ajouter un score
         form(action="/add" method="POST")
           .form-group
-            label Joueur
             .radio-group
               label
                 input(type="radio" name="player" value="Kaille" required)
@@ -125,8 +123,7 @@ html(lang="fr")
                 input(type="radio" name="player" value="Francis")
                 span Francis
           .form-group
-            label(for="points") Points
-            input(type="number" name="points" id="points" min="0" required placeholder="Nombre de points")
+            input(type="text" name="points" id="points" inputmode="numeric" pattern="[0-9]*" required placeholder="Score")
           button(type="submit") Ajouter
 
       table

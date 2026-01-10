@@ -33,7 +33,7 @@ function saveData(data) {
 app.get('/', (req, res) => {
   const counts = loadData();
   res.render('index', {
-    title: 'Ramin Gin Count',
+    title: 'Rami Gin Scores',
     counts: counts
   });
 });
