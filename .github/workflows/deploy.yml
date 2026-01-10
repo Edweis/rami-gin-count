@@ -23,19 +23,21 @@ jobs:
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to server
+        env:
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
-            APP_DIR="/home/$USER/gin"
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -s" << ENDSSH
+            APP_DIR="/home/\$USER/gin"
 
             # Create app directory if it doesn't exist
-            mkdir -p $APP_DIR
-            cd $APP_DIR
+            mkdir -p \$APP_DIR
+            cd \$APP_DIR
 
             # Clone or pull latest code
             if [ -d ".git" ]; then
               git pull origin main || git pull origin master
             else
-              git clone ${{ github.server_url }}/${{ github.repository }}.git .
+              git clone ${REPO_URL} .
             fi
 
             # Install dependencies
@@ -44,7 +46,7 @@ jobs:
             # Reload the app with PM2
             if command -v pm2 &> /dev/null; then
               pm2 describe gin > /dev/null 2>&1
-              if [ $? -eq 0 ]; then
+              if [ \$? -eq 0 ]; then
                 pm2 reload gin
               else
                 pm2 start server.js --name gin
