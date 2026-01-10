@@ -108,6 +108,17 @@ html(lang="fr")
       button:hover {
         background: #ff6b6b;
       }
+      .footer {
+        text-align: center;
+        margin-top: 20px;
+      }
+      .footer a {
+        color: #ccc;
+        text-decoration: none;
+      }
+      .footer a:hover {
+        color: #e94560;
+      }
   body
     .container
       h1= title
@@ -149,3 +160,6 @@ html(lang="fr")
               td= formatDate(count.datetime)
               td= count.kaille || '-'
               td= count.francis || '-'
+
+      .footer
+        a(href="https://github.com/Edweis/rami-gin-count/actions" target="_blank") GitHub Actions
