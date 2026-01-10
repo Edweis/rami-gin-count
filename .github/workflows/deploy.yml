@@ -28,6 +28,9 @@ jobs:
           BRANCH: ${{ github.ref_name }}
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -s" << ENDSSH
+            # Load shell profile for correct PATH (pnpm, pm2)
+            source ~/.bashrc 2>/dev/null || source ~/.profile 2>/dev/null || true
+
             APP_DIR="/home/\$USER/gin"
 
             # Create app directory if it doesn't exist
