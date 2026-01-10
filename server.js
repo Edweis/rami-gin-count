@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5400;
 const DATA_FILE = path.join(__dirname, 'data.json');
 
 // Middleware
