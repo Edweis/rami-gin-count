@@ -157,7 +157,7 @@ html(lang="fr")
           each count, index in reversedCounts
             tr
               td= counts.length - index
-              td= formatDate(count.datetime)
+              td= count.formattedDate
               td= count.kaille || '-'
               td= count.francis || '-'
 

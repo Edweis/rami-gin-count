@@ -49,13 +49,15 @@ function saveData(data) {
 
 // Home page - display counts
 app.get('/', (req, res) => {
-  const counts = loadData();
+  const counts = loadData().map(count => ({
+    ...count,
+    formattedDate: formatDate(count.datetime)
+  }));
   const csrfToken = generateToken(req);
   res.render('index', {
     title: 'Rami Gin Scores',
     counts: counts,
-    csrfToken: csrfToken,
-    formatDate: formatDate
+    csrfToken: csrfToken
   });
 });
 
