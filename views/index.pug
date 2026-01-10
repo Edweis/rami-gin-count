@@ -114,6 +114,7 @@ html(lang="fr")
 
       .add-form
         form(action="/add" method="POST")
+          input(type="hidden" name="_csrf" value=csrfToken)
           .form-group
             .radio-group
               label

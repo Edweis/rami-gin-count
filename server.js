@@ -1,14 +1,22 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const cookieParser = require('cookie-parser');
+const { csrfSync } = require('csrf-sync');
 
 const app = express();
 const PORT = process.env.PORT || 5400;
 const DATA_FILE = path.join(__dirname, 'data.json');
 
+// CSRF protection
+const { csrfSynchronisedProtection, generateToken } = csrfSync({
+  getTokenFromRequest: (req) => req.body._csrf || req.headers['x-csrf-token']
+});
+
 // Middleware
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -32,14 +40,16 @@ function saveData(data) {
 // Home page - display counts
 app.get('/', (req, res) => {
   const counts = loadData();
+  const csrfToken = generateToken(req);
   res.render('index', {
     title: 'Rami Gin Scores',
-    counts: counts
+    counts: counts,
+    csrfToken: csrfToken
   });
 });
 
 // Add new count
-app.post('/add', (req, res) => {
+app.post('/add', csrfSynchronisedProtection, (req, res) => {
   const { player, points } = req.body;
   const counts = loadData();
 
@@ -56,7 +66,7 @@ app.post('/add', (req, res) => {
 });
 
 // API endpoint for adding (for fetch requests)
-app.post('/api/add', (req, res) => {
+app.post('/api/add', csrfSynchronisedProtection, (req, res) => {
   const { player, points } = req.body;
   const counts = loadData();
 
