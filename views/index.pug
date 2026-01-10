@@ -134,6 +134,13 @@ html(lang="fr")
             th Kaille
             th Francis
         tbody
+          - var totalKaille = counts.reduce((sum, c) => sum + (c.kaille || 0), 0)
+          - var totalFrancis = counts.reduce((sum, c) => sum + (c.francis || 0), 0)
+          tr.total-row
+            td Total
+            td
+            td= totalKaille
+            td= totalFrancis
           - var reversedCounts = counts.slice().reverse()
           each count, index in reversedCounts
             tr
@@ -150,10 +157,3 @@ html(lang="fr")
               td= dateStr
               td= count.kaille || '-'
               td= count.francis || '-'
-          tr.total-row
-            td Total
-            td
-            - var totalKaille = counts.reduce((sum, c) => sum + (c.kaille || 0), 0)
-            - var totalFrancis = counts.reduce((sum, c) => sum + (c.francis || 0), 0)
-            td= totalKaille
-            td= totalFrancis
