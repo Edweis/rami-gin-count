@@ -69,7 +69,7 @@ html(lang="fr")
         margin-bottom: 5px;
         color: #ccc;
       }
-      select, input[type="number"] {
+      input[type="number"] {
         width: 100%;
         padding: 10px;
         border: none;
@@ -78,9 +78,21 @@ html(lang="fr")
         color: #fff;
         font-size: 16px;
       }
-      select option {
-        background: #1a1a2e;
+      .radio-group {
+        display: flex;
+        gap: 20px;
+      }
+      .radio-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
         color: #fff;
+      }
+      .radio-group input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #e94560;
       }
       button {
         width: 100%;
@@ -100,35 +112,46 @@ html(lang="fr")
     .container
       h1= title
 
-      table
-        thead
-          tr
-            th #
-            th Kaille
-            th Francis
-        tbody
-          each count, index in counts
-            tr
-              td= index + 1
-              td= count.kaille || '-'
-              td= count.francis || '-'
-          tr.total-row
-            td Total
-            - var totalKaille = counts.reduce((sum, c) => sum + (c.kaille || 0), 0)
-            - var totalFrancis = counts.reduce((sum, c) => sum + (c.francis || 0), 0)
-            td= totalKaille
-            td= totalFrancis
-
       .add-form
         h3 Ajouter un score
         form(action="/add" method="POST")
           .form-group
-            label(for="player") Joueur
-            select(name="player" id="player" required)
-              option(value="") -- Choisir --
-              option(value="Kaille") Kaille
-              option(value="Francis") Francis
+            label Joueur
+            .radio-group
+              label
+                input(type="radio" name="player" value="Kaille" required)
+                span Kaille
+              label
+                input(type="radio" name="player" value="Francis")
+                span Francis
           .form-group
             label(for="points") Points
             input(type="number" name="points" id="points" min="0" required placeholder="Nombre de points")
           button(type="submit") Ajouter
+
+      table
+        thead
+          tr
+            th #
+            th Date
+            th Kaille
+            th Francis
+        tbody
+          - var reversedCounts = counts.slice().reverse()
+          each count, index in reversedCounts
+            tr
+              td= counts.length - index
+              -
+                const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+                const d = new Date(count.datetime);
+                const dateStr = d.getDate() + ' ' + months[d.getMonth()];
+              td= dateStr
+              td= count.kaille || '-'
+              td= count.francis || '-'
+          tr.total-row
+            td Total
+            td
+            - var totalKaille = counts.reduce((sum, c) => sum + (c.kaille || 0), 0)
+            - var totalFrancis = counts.reduce((sum, c) => sum + (c.francis || 0), 0)
+            td= totalKaille
+            td= totalFrancis
