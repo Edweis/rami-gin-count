@@ -103,13 +103,13 @@ html(lang="fr")
       table
         thead
           tr
-            th Date
+            th #
             th Kaille
             th Francis
         tbody
-          each count in counts
+          each count, index in counts
             tr
-              td= count.date
+              td= index + 1
               td= count.kaille || '-'
               td= count.francis || '-'
           tr.total-row

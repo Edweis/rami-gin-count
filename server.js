@@ -44,7 +44,7 @@ app.post('/add', (req, res) => {
   const counts = loadData();
 
   const newEntry = {
-    date: new Date().toLocaleDateString('fr-FR'),
+    datetime: new Date().toISOString(),
     kaille: player === 'Kaille' ? parseInt(points) || 0 : 0,
     francis: player === 'Francis' ? parseInt(points) || 0 : 0
   };
@@ -61,7 +61,7 @@ app.post('/api/add', (req, res) => {
   const counts = loadData();
 
   const newEntry = {
-    date: new Date().toLocaleDateString('fr-FR'),
+    datetime: new Date().toISOString(),
     kaille: player === 'Kaille' ? parseInt(points) || 0 : 0,
     francis: player === 'Francis' ? parseInt(points) || 0 : 0
   };
