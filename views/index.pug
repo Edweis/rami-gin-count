@@ -108,16 +108,22 @@ html(lang="fr")
       button:hover {
         background: #ff6b6b;
       }
-      .wipe-section {
+      .footer-links {
         margin-top: 40px;
         padding-top: 20px;
         border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        font-size: 14px;
       }
-      .btn-danger {
-        background: #6c757d;
+      .footer-links a {
+        color: #888;
+        text-decoration: none;
       }
-      .btn-danger:hover {
-        background: #dc3545;
+      .footer-links a:hover {
+        color: #e94560;
+        text-decoration: underline;
       }
   body
     .container
@@ -169,7 +175,8 @@ html(lang="fr")
               td= count.kaille || '-'
               td= count.francis || '-'
 
-      .wipe-section
-        form(action="/wipe" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir effacer toutes les données ?')")
+      .footer-links
+        form#wipe-form(action="/wipe" method="POST" style="display:none")
           input(type="hidden" name="_csrf" value=csrfToken)
-          button.btn-danger(type="submit") Effacer toutes les données
+        a(href="#" onclick="if(confirm('Êtes-vous sûr de vouloir effacer toutes les données ?')) document.getElementById('wipe-form').submit(); return false;") Effacer les données
+        a(href="https://github.com/Edweis/rami-gin-count" target="_blank") GitHub
