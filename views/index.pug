@@ -178,5 +178,12 @@ html(lang="fr")
       .footer-links
         form#wipe-form(action="/wipe" method="POST" style="display:none")
           input(type="hidden" name="_csrf" value=csrfToken)
-        a(href="#" onclick="if(confirm('Êtes-vous sûr de vouloir effacer toutes les données ?')) document.getElementById('wipe-form').submit(); return false;") Effacer les données
+        a(href="#" id="clear-data-link") Clear data
         a(href="https://github.com/Edweis/rami-gin-count" target="_blank") GitHub
+    script.
+      document.getElementById('clear-data-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (confirm('Êtes-vous sûr de vouloir effacer toutes les données ?')) {
+          document.getElementById('wipe-form').submit();
+        }
+      });
