@@ -8,9 +8,13 @@ const app = express();
 const PORT = process.env.PORT || 5400;
 const DATA_FILE = path.join(__dirname, 'data.json');
 
-// CSRF protection
+// CSRF protection using cookies for state storage
 const { csrfSynchronisedProtection, generateToken } = csrfSync({
-  getTokenFromRequest: (req) => req.body._csrf || req.headers['x-csrf-token']
+  getTokenFromRequest: (req) => req.body._csrf || req.headers['x-csrf-token'],
+  getTokenFromState: (req) => req.cookies['csrf-token'],
+  storeTokenInState: (req, res, token) => {
+    res.cookie('csrf-token', token, { httpOnly: true, sameSite: 'strict' });
+  }
 });
 
 // Middleware
@@ -40,7 +44,7 @@ function saveData(data) {
 // Home page - display counts
 app.get('/', (req, res) => {
   const counts = loadData();
-  const csrfToken = generateToken(req);
+  const csrfToken = generateToken(req, res);
   res.render('index', {
     title: 'Rami Gin Scores',
     counts: counts,
