@@ -26,33 +26,7 @@ jobs:
         env:
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
           BRANCH: ${{ github.ref_name }}
-        run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "bash -s" << ENDSSH
-            # Load shell profile for correct PATH (pnpm, pm2)
-            source ~/.bashrc 2>/dev/null || source ~/.profile 2>/dev/null || true
-
-            APP_DIR="/home/\$USER/gin"
-
-            # Create app directory if it doesn't exist
-            mkdir -p \$APP_DIR
-            cd \$APP_DIR
-
-            # Clone or pull latest code
-            if [ -d ".git" ]; then
-              git fetch origin ${BRANCH}
-              git checkout ${BRANCH}
-              git pull origin ${BRANCH}
-            else
-              git clone -b ${BRANCH} ${REPO_URL} .
-            fi
-
-            # Install dependencies
-            npm install --production
-
-            # Reload the app with PM2
-            pm2 reload gin
-          ENDSSH
-
+        run: ssh app@ssh-cumin.kapochamo.com "pm2 reload gin"
       - name: Verify deployment
         run: |
           sleep 5
