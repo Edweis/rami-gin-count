@@ -26,8 +26,4 @@ jobs:
         env:
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
           BRANCH: ${{ github.ref_name }}
-        run: ssh app@ssh-cumin.kapochamo.com "pm2 reload gin"
-      - name: Verify deployment
-        run: |
-          sleep 5
-          curl -f http://${{ secrets.SERVER_HOST }}:5400 || echo "Server may need a moment to start"
+        run: ssh app@ssh-cumin.kapochamo.com "/home/app/.local/share/pnpm/pm2 reload gin"
