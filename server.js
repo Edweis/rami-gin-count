@@ -1,28 +1,31 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const cookieParser = require('cookie-parser');
+const session = require('express-session');
 const { csrfSync } = require('csrf-sync');
 
 const app = express();
 const PORT = process.env.PORT || 5400;
 const DATA_FILE = path.join(__dirname, 'data.json');
 
-// CSRF protection using cookies for state storage
-const { csrfSynchronisedProtection, generateToken } = csrfSync({
-  getTokenFromRequest: (req) => req.body._csrf || req.headers['x-csrf-token'],
-  getTokenFromState: (req) => req.cookies['csrf-token'],
-  storeTokenInState: (req, res, token) => {
-    res.cookie('csrf-token', token, { httpOnly: true, sameSite: 'strict' });
-  }
-});
-
 // Middleware
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
-app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Session middleware (required for csrf-sync)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false, sameSite: 'strict' }
+}));
+
+// CSRF protection using session storage (default behavior)
+const { csrfSynchronisedProtection, generateToken } = csrfSync({
+  getTokenFromRequest: (req) => req.body._csrf || req.headers['x-csrf-token']
+});
 
 // Load data from file or initialize empty array
 function loadData() {
