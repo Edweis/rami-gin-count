@@ -30,6 +30,6 @@ jobs:
         run: |
           ssh app@ssh-cumin.kapochamo.com "cd /home/app/gin && rm -rf node_modules && npm install"
 
-      - name: Reload PM2
+      - name: Restart PM2
         run: |
-          ssh app@ssh-cumin.kapochamo.com "/home/app/.local/share/pnpm/pm2 reload gin"
+          ssh app@ssh-cumin.kapochamo.com "/home/app/.local/share/pnpm/pm2 restart gin && /home/app/.local/share/pnpm/pm2 logs gin --lines 20 --nostream"
