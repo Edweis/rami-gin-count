@@ -108,16 +108,16 @@ html(lang="fr")
       button:hover {
         background: #ff6b6b;
       }
-      /* Swipe row styles */
-      .swipeable-row {
-        position: relative;
-        transition: transform 0.2s ease;
-        touch-action: pan-y;
+      /* Long press row styles */
+      .deletable-row {
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
       }
-      .swipeable-row.swiping {
-        transition: none;
+      .deletable-row.pressing {
+        background: rgba(233, 69, 96, 0.2) !important;
       }
-      .swipeable-row.swiped {
+      .deletable-row.selected {
         background: rgba(233, 69, 96, 0.3) !important;
       }
       /* Modal styles */
@@ -218,7 +218,7 @@ html(lang="fr")
             }
             var reversedCounts = counts.slice().reverse();
           each count, index in reversedCounts
-            tr.swipeable-row(data-id=count.id)
+            tr.deletable-row(data-id=count.id)
               td= counts.length - index
               td= formatDate(count.datetime)
               td= count.kaille || '-'
@@ -242,44 +242,39 @@ html(lang="fr")
           let currentRowId = null;
           let currentRow = null;
 
-          // Swipe detection
-          const rows = document.querySelectorAll('.swipeable-row');
-          const SWIPE_THRESHOLD = 80;
+          // Long press detection
+          const rows = document.querySelectorAll('.deletable-row');
+          const LONG_PRESS_DURATION = 500;
 
           rows.forEach(row => {
-            let startX = 0;
-            let currentX = 0;
-            let isSwiping = false;
+            let pressTimer = null;
 
-            row.addEventListener('touchstart', (e) => {
-              startX = e.touches[0].clientX;
-              isSwiping = true;
-              row.classList.add('swiping');
-            }, { passive: true });
-
-            row.addEventListener('touchmove', (e) => {
-              if (!isSwiping) return;
-              currentX = e.touches[0].clientX;
-              const diff = startX - currentX;
-              if (diff > 0) {
-                row.style.transform = `translateX(${-Math.min(diff, 100)}px)`;
-              }
-            }, { passive: true });
-
-            row.addEventListener('touchend', () => {
-              if (!isSwiping) return;
-              isSwiping = false;
-              row.classList.remove('swiping');
-              const diff = startX - currentX;
-
-              if (diff > SWIPE_THRESHOLD) {
-                row.classList.add('swiped');
+            function startPress() {
+              row.classList.add('pressing');
+              pressTimer = setTimeout(() => {
+                row.classList.remove('pressing');
+                row.classList.add('selected');
                 currentRowId = row.dataset.id;
                 currentRow = row;
                 modal.classList.add('active');
-              }
-              row.style.transform = '';
-            });
+              }, LONG_PRESS_DURATION);
+            }
+
+            function cancelPress() {
+              clearTimeout(pressTimer);
+              row.classList.remove('pressing');
+            }
+
+            // Touch events
+            row.addEventListener('touchstart', startPress, { passive: true });
+            row.addEventListener('touchend', cancelPress);
+            row.addEventListener('touchmove', cancelPress);
+            row.addEventListener('touchcancel', cancelPress);
+
+            // Mouse events (for desktop)
+            row.addEventListener('mousedown', startPress);
+            row.addEventListener('mouseup', cancelPress);
+            row.addEventListener('mouseleave', cancelPress);
           });
 
           // Modal actions
@@ -291,7 +286,7 @@ html(lang="fr")
           function closeModal() {
             modal.classList.remove('active');
             if (currentRow) {
-              currentRow.classList.remove('swiped');
+              currentRow.classList.remove('selected');
             }
             currentRowId = null;
             currentRow = null;
@@ -310,7 +305,6 @@ html(lang="fr")
 
               if (response.ok) {
                 currentRow.style.opacity = '0';
-                currentRow.style.transform = 'translateX(-100%)';
                 setTimeout(() => {
                   window.location.reload();
                 }, 300);
