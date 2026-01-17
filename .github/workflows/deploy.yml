@@ -22,9 +22,14 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to server
-        env:
-          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
-          BRANCH: ${{ github.ref_name }}
+      - name: Pull latest code
         run: |
-          ssh app@ssh-cumin.kapochamo.com "cd /home/app/gin && git fetch origin ${{ github.ref_name }} && git reset --hard origin/${{ github.ref_name }} && npm install && /home/app/.local/share/pnpm/pm2 reload gin"
+          ssh app@ssh-cumin.kapochamo.com "cd /home/app/gin && git fetch origin ${{ github.ref_name }} && git reset --hard origin/${{ github.ref_name }}"
+
+      - name: Install dependencies
+        run: |
+          ssh app@ssh-cumin.kapochamo.com "cd /home/app/gin && npm install"
+
+      - name: Reload PM2
+        run: |
+          ssh app@ssh-cumin.kapochamo.com "/home/app/.local/share/pnpm/pm2 reload gin"
