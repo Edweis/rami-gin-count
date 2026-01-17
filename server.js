@@ -16,9 +16,13 @@ function generateId() {
 // CSRF protection using cookies for state storage
 const { csrfSynchronisedProtection, generateToken } = csrfSync({
   getTokenFromRequest: (req) => req.body._csrf || req.headers['x-csrf-token'],
-  getTokenFromState: (req) => req.cookies['csrf-token'],
+  getTokenFromState: (req) => req.cookies ? req.cookies['csrf-token'] : undefined,
   storeTokenInState: (req, res, token) => {
-    res.cookie('csrf-token', token, { httpOnly: true, sameSite: 'strict' });
+    if (res && typeof res.cookie === 'function') {
+      res.cookie('csrf-token', token, { httpOnly: true, sameSite: 'strict' });
+    } else {
+      console.error('res.cookie not available. res type:', typeof res, 'res keys:', res ? Object.keys(res) : 'null');
+    }
   }
 });
 
