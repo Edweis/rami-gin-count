@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ssh app@ssh-cumin.kapochamo.com "cd /home/app/gin && npm install"
+          ssh app@ssh-cumin.kapochamo.com "cd /home/app/gin && rm -rf node_modules && npm install"
 
       - name: Reload PM2
         run: |
