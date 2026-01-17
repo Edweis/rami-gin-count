@@ -108,6 +108,72 @@ html(lang="fr")
       button:hover {
         background: #ff6b6b;
       }
+      /* Swipe row styles */
+      .swipeable-row {
+        position: relative;
+        transition: transform 0.2s ease;
+        touch-action: pan-y;
+      }
+      .swipeable-row.swiping {
+        transition: none;
+      }
+      .swipeable-row.swiped {
+        background: rgba(233, 69, 96, 0.3) !important;
+      }
+      /* Modal styles */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+      .modal {
+        background: #1a1a2e;
+        border-radius: 15px;
+        padding: 25px;
+        max-width: 320px;
+        width: 90%;
+        text-align: center;
+        border: 1px solid rgba(233, 69, 96, 0.3);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      }
+      .modal h3 {
+        color: #e94560;
+        margin-bottom: 15px;
+      }
+      .modal p {
+        color: #ccc;
+        margin-bottom: 20px;
+      }
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+      }
+      .modal-buttons button {
+        flex: 1;
+        padding: 12px;
+      }
+      .btn-cancel {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .btn-delete {
+        background: #e94560;
+      }
+      .btn-delete:hover {
+        background: #ff6b6b;
+      }
   body
     .container
       h1= title
@@ -152,8 +218,109 @@ html(lang="fr")
             }
             var reversedCounts = counts.slice().reverse();
           each count, index in reversedCounts
-            tr
+            tr.swipeable-row(data-id=count.id)
               td= counts.length - index
               td= formatDate(count.datetime)
               td= count.kaille || '-'
               td= count.francis || '-'
+
+      //- Confirmation Modal
+      .modal-overlay#deleteModal
+        .modal
+          h3 Supprimer cette ligne ?
+          p Cette action est irr&#233;versible.
+          .modal-buttons
+            button.btn-cancel#cancelDelete Annuler
+            button.btn-delete#confirmDelete Supprimer
+
+      script.
+        (function() {
+          const csrfToken = '#{csrfToken}';
+          const modal = document.getElementById('deleteModal');
+          const cancelBtn = document.getElementById('cancelDelete');
+          const confirmBtn = document.getElementById('confirmDelete');
+          let currentRowId = null;
+          let currentRow = null;
+
+          // Swipe detection
+          const rows = document.querySelectorAll('.swipeable-row');
+          const SWIPE_THRESHOLD = 80;
+
+          rows.forEach(row => {
+            let startX = 0;
+            let currentX = 0;
+            let isSwiping = false;
+
+            row.addEventListener('touchstart', (e) => {
+              startX = e.touches[0].clientX;
+              isSwiping = true;
+              row.classList.add('swiping');
+            }, { passive: true });
+
+            row.addEventListener('touchmove', (e) => {
+              if (!isSwiping) return;
+              currentX = e.touches[0].clientX;
+              const diff = startX - currentX;
+              if (diff > 0) {
+                row.style.transform = `translateX(${-Math.min(diff, 100)}px)`;
+              }
+            }, { passive: true });
+
+            row.addEventListener('touchend', () => {
+              if (!isSwiping) return;
+              isSwiping = false;
+              row.classList.remove('swiping');
+              const diff = startX - currentX;
+
+              if (diff > SWIPE_THRESHOLD) {
+                row.classList.add('swiped');
+                currentRowId = row.dataset.id;
+                currentRow = row;
+                modal.classList.add('active');
+              }
+              row.style.transform = '';
+            });
+          });
+
+          // Modal actions
+          cancelBtn.addEventListener('click', closeModal);
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+          });
+
+          function closeModal() {
+            modal.classList.remove('active');
+            if (currentRow) {
+              currentRow.classList.remove('swiped');
+            }
+            currentRowId = null;
+            currentRow = null;
+          }
+
+          confirmBtn.addEventListener('click', async () => {
+            if (!currentRowId) return;
+
+            try {
+              const response = await fetch(`/api/delete/${currentRowId}`, {
+                method: 'DELETE',
+                headers: {
+                  'X-CSRF-Token': csrfToken
+                }
+              });
+
+              if (response.ok) {
+                currentRow.style.opacity = '0';
+                currentRow.style.transform = 'translateX(-100%)';
+                setTimeout(() => {
+                  window.location.reload();
+                }, 300);
+              } else {
+                alert('Erreur lors de la suppression');
+                closeModal();
+              }
+            } catch (err) {
+              alert('Erreur lors de la suppression');
+              closeModal();
+            }
+          });
+        })();
