@@ -108,6 +108,72 @@ html(lang="fr")
       button:hover {
         background: #ff6b6b;
       }
+      /* Long press row styles */
+      .deletable-row {
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .deletable-row.pressing {
+        background: rgba(233, 69, 96, 0.2) !important;
+      }
+      .deletable-row.selected {
+        background: rgba(233, 69, 96, 0.3) !important;
+      }
+      /* Modal styles */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+      .modal {
+        background: #1a1a2e;
+        border-radius: 15px;
+        padding: 25px;
+        max-width: 320px;
+        width: 90%;
+        text-align: center;
+        border: 1px solid rgba(233, 69, 96, 0.3);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      }
+      .modal h3 {
+        color: #e94560;
+        margin-bottom: 15px;
+      }
+      .modal p {
+        color: #ccc;
+        margin-bottom: 20px;
+      }
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+      }
+      .modal-buttons button {
+        flex: 1;
+        padding: 12px;
+      }
+      .btn-cancel {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .btn-delete {
+        background: #e94560;
+      }
+      .btn-delete:hover {
+        background: #ff6b6b;
+      }
   body
     .container
       h1= title
@@ -152,8 +218,103 @@ html(lang="fr")
             }
             var reversedCounts = counts.slice().reverse();
           each count, index in reversedCounts
-            tr
+            tr.deletable-row(data-id=count.id)
               td= counts.length - index
               td= formatDate(count.datetime)
               td= count.kaille || '-'
               td= count.francis || '-'
+
+      //- Confirmation Modal
+      .modal-overlay#deleteModal
+        .modal
+          h3 Supprimer cette ligne ?
+          p Cette action est irr&#233;versible.
+          .modal-buttons
+            button.btn-cancel#cancelDelete Annuler
+            button.btn-delete#confirmDelete Supprimer
+
+      script.
+        (function() {
+          const csrfToken = '#{csrfToken}';
+          const modal = document.getElementById('deleteModal');
+          const cancelBtn = document.getElementById('cancelDelete');
+          const confirmBtn = document.getElementById('confirmDelete');
+          let currentRowId = null;
+          let currentRow = null;
+
+          // Long press detection
+          const rows = document.querySelectorAll('.deletable-row');
+          const LONG_PRESS_DURATION = 500;
+
+          rows.forEach(row => {
+            let pressTimer = null;
+
+            function startPress() {
+              row.classList.add('pressing');
+              pressTimer = setTimeout(() => {
+                row.classList.remove('pressing');
+                row.classList.add('selected');
+                currentRowId = row.dataset.id;
+                currentRow = row;
+                modal.classList.add('active');
+              }, LONG_PRESS_DURATION);
+            }
+
+            function cancelPress() {
+              clearTimeout(pressTimer);
+              row.classList.remove('pressing');
+            }
+
+            // Touch events
+            row.addEventListener('touchstart', startPress, { passive: true });
+            row.addEventListener('touchend', cancelPress);
+            row.addEventListener('touchmove', cancelPress);
+            row.addEventListener('touchcancel', cancelPress);
+
+            // Mouse events (for desktop)
+            row.addEventListener('mousedown', startPress);
+            row.addEventListener('mouseup', cancelPress);
+            row.addEventListener('mouseleave', cancelPress);
+          });
+
+          // Modal actions
+          cancelBtn.addEventListener('click', closeModal);
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+          });
+
+          function closeModal() {
+            modal.classList.remove('active');
+            if (currentRow) {
+              currentRow.classList.remove('selected');
+            }
+            currentRowId = null;
+            currentRow = null;
+          }
+
+          confirmBtn.addEventListener('click', async () => {
+            if (!currentRowId) return;
+
+            try {
+              const response = await fetch(`/api/delete/${currentRowId}`, {
+                method: 'DELETE',
+                headers: {
+                  'X-CSRF-Token': csrfToken
+                }
+              });
+
+              if (response.ok) {
+                currentRow.style.opacity = '0';
+                setTimeout(() => {
+                  window.location.reload();
+                }, 300);
+              } else {
+                alert('Erreur lors de la suppression');
+                closeModal();
+              }
+            } catch (err) {
+              alert('Erreur lors de la suppression');
+              closeModal();
+            }
+          });
+        })();

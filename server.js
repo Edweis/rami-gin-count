@@ -8,6 +8,11 @@ const app = express();
 const PORT = process.env.PORT || 5400;
 const DATA_FILE = path.join(__dirname, 'data.json');
 
+// Generate unique ID
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+}
+
 // CSRF protection using cookies for state storage
 const { csrfSynchronisedProtection, generateToken } = csrfSync({
   getTokenFromRequest: (req) => req.body._csrf || req.headers['x-csrf-token'],
@@ -58,6 +63,7 @@ app.post('/add', csrfSynchronisedProtection, (req, res) => {
   const counts = loadData();
 
   const newEntry = {
+    id: generateId(),
     datetime: new Date().toISOString(),
     kaille: player === 'Kaille' ? parseInt(points) || 0 : 0,
     francis: player === 'Francis' ? parseInt(points) || 0 : 0
@@ -75,6 +81,7 @@ app.post('/api/add', csrfSynchronisedProtection, (req, res) => {
   const counts = loadData();
 
   const newEntry = {
+    id: generateId(),
     datetime: new Date().toISOString(),
     kaille: player === 'Kaille' ? parseInt(points) || 0 : 0,
     francis: player === 'Francis' ? parseInt(points) || 0 : 0
@@ -84,6 +91,22 @@ app.post('/api/add', csrfSynchronisedProtection, (req, res) => {
   saveData(counts);
 
   res.json({ success: true, entry: newEntry });
+});
+
+// API endpoint for deleting an entry
+app.delete('/api/delete/:id', csrfSynchronisedProtection, (req, res) => {
+  const { id } = req.params;
+  let counts = loadData();
+
+  const initialLength = counts.length;
+  counts = counts.filter(entry => entry.id !== id);
+
+  if (counts.length === initialLength) {
+    return res.status(404).json({ success: false, error: 'Entry not found' });
+  }
+
+  saveData(counts);
+  res.json({ success: true });
 });
 
 app.listen(PORT, () => {
