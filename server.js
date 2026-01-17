@@ -1,8 +1,8 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const cookieParser = require('cookie-parser');
-const { csrfSync } = require('csrf-sync');
 
 const app = express();
 const PORT = process.env.PORT || 5400;
@@ -13,18 +13,20 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
 }
 
-// CSRF protection using cookies for state storage
-const { csrfSynchronisedProtection, generateToken } = csrfSync({
-  getTokenFromRequest: (req) => req.body._csrf || req.headers['x-csrf-token'],
-  getTokenFromState: (req) => req.cookies ? req.cookies['csrf-token'] : undefined,
-  storeTokenInState: (req, res, token) => {
-    if (res && typeof res.cookie === 'function') {
-      res.cookie('csrf-token', token, { httpOnly: true, sameSite: 'strict' });
-    } else {
-      console.error('res.cookie not available. res type:', typeof res, 'res keys:', res ? Object.keys(res) : 'null');
-    }
+// Simple CSRF protection
+function generateCsrfToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function csrfProtection(req, res, next) {
+  const tokenFromRequest = req.body._csrf || req.headers['x-csrf-token'];
+  const tokenFromCookie = req.cookies['csrf-token'];
+
+  if (!tokenFromRequest || !tokenFromCookie || tokenFromRequest !== tokenFromCookie) {
+    return res.status(403).json({ error: 'Invalid CSRF token' });
   }
-});
+  next();
+}
 
 // Middleware
 app.set('view engine', 'pug');
@@ -53,7 +55,8 @@ function saveData(data) {
 // Home page - display counts
 app.get('/', (req, res) => {
   const counts = loadData();
-  const csrfToken = generateToken(req, res);
+  const csrfToken = generateCsrfToken();
+  res.cookie('csrf-token', csrfToken, { httpOnly: true, sameSite: 'strict' });
   res.render('index', {
     title: 'Rami Gin Scores',
     counts: counts,
@@ -62,7 +65,7 @@ app.get('/', (req, res) => {
 });
 
 // Add new count
-app.post('/add', csrfSynchronisedProtection, (req, res) => {
+app.post('/add', csrfProtection, (req, res) => {
   const { player, points } = req.body;
   const counts = loadData();
 
@@ -80,7 +83,7 @@ app.post('/add', csrfSynchronisedProtection, (req, res) => {
 });
 
 // API endpoint for adding (for fetch requests)
-app.post('/api/add', csrfSynchronisedProtection, (req, res) => {
+app.post('/api/add', csrfProtection, (req, res) => {
   const { player, points } = req.body;
   const counts = loadData();
 
@@ -98,7 +101,7 @@ app.post('/api/add', csrfSynchronisedProtection, (req, res) => {
 });
 
 // API endpoint for deleting an entry
-app.delete('/api/delete/:id', csrfSynchronisedProtection, (req, res) => {
+app.delete('/api/delete/:id', csrfProtection, (req, res) => {
   const { id } = req.params;
   let counts = loadData();
 
