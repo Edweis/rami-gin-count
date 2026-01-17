@@ -26,4 +26,5 @@ jobs:
         env:
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
           BRANCH: ${{ github.ref_name }}
-        run: ssh app@ssh-cumin.kapochamo.com "/home/app/.local/share/pnpm/pm2 reload gin"
+        run: |
+          ssh app@ssh-cumin.kapochamo.com "cd /home/app/gin && git pull origin main && /home/app/.local/share/pnpm/pm2 reload gin"
